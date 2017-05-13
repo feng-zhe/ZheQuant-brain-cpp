@@ -1,0 +1,2 @@
+set (DB_URL "mongodb://test:test@db?authSource=admin")
+set (MQ_URL "amqp://rabbitmq/")

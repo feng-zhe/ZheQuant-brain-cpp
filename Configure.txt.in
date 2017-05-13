@@ -1,0 +1,2 @@
+#define DB_URL "@DB_URL@"
+#define MQ_URL "@MQ_URL@"
