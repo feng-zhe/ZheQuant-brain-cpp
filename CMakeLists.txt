@@ -8,7 +8,7 @@ add_executable (cbrain main.cpp)
 if(EXISTS "${CMAKE_SOURCE_DIR}/Config.txt")
     include(${CMAKE_SOURCE_DIR}/Config.txt)
 else()
-    include(${CMAKE_SOURCE_DIR}/ConfigTemplate.txt)
+    include(${CMAKE_SOURCE_DIR}/ConfigDefault.txt)
 endif()
 # generate configure header file
 configure_file ("${CMAKE_SOURCE_DIR}/Configure.txt.in" "${CMAKE_SOURCE_DIR}/src/include/Configure.h")
