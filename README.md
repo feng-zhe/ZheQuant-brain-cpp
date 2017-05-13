@@ -1,6 +1,15 @@
 # Usage
 The ZheQuant worker for time-comsuming calculation work and written by C++
 
+# TODO
+- A list of default database table and its fields. These fields should be the standard for plugins.
+- Plugin System for more commands&calculators. It should has the following features:
+    - the plugin system can auto-detect the plugins, at least during compiling
+- every plugin should provide
+    - what name of its command is, so the plugin system knows which plugin to use for a input command line
+    - the names of those standard database objects which are used
+- a way to map customized database object names to standard ones
+
 # Tips
 Unless otherwise noted, this document assumes you are under the project root directory.
 
