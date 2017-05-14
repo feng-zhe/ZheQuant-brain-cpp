@@ -71,10 +71,10 @@ int main()
         // start consuming from the queue, and install the callbacks
         ch_recv.consume(QUEUE_TODO, AMQP::durable)
             .onReceived( [&ch_recv, &ch_send, &EXCHG_DONE, &ROUTING_KEY_DONE](const AMQP::Message& message, uint64_t deliveryTag, bool redelivered) {
-                    cout << "[main] message received: " << message.message() << endl;
+                    cout << "[main] message received: " << message.body() << endl;
                     // read message into json object
                     Document doc_msg, doc_result;
-                    doc_msg.Parse(message.message().c_str());
+                    doc_msg.Parse(message.body());
                     doc_result.SetObject();
                     // check message
                     if( !doc_msg.HasMember("name") || !doc_msg["name"].IsString() ||
