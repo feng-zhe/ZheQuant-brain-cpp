@@ -78,8 +78,8 @@ vector<double> Storage::GetOneStockRecent(const string& kCode, const int kDay_le
     // loop and write to result
     vector<double> res;
     for(auto& doc : cursor) {
-        if(doc["CLOSE"] && doc["CLOSE"].type() == bsoncxx::type::k_double){
-            res.push_back(doc["CLOSE"].get_double());
+        if(doc["close_price"] && doc["close_price"].type() == bsoncxx::type::k_double){
+            res.push_back(doc["close_price"].get_double());
         }
     }
     return res;
@@ -131,9 +131,9 @@ vector<double> Storage::GetOneStockRecent(const string& kCode, const int kDay_le
             //} else {
                 //continue;
             //}
-            //// CLOSE
-            //if(doc["CLOSE"].type() == bsoncxx::type::k_double){
-                //stk.close_price = doc["CLOSE"].get_double();
+            //// close_price
+            //if(doc["close_price"].type() == bsoncxx::type::k_double){
+                //stk.close_price = doc["close_price"].get_double();
             //} else {
                 //continue;
             //}
