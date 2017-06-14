@@ -13,7 +13,7 @@ endif()
 # generate configure header file
 configure_file ("${CMAKE_SOURCE_DIR}/Configure.txt.in" "${CMAKE_SOURCE_DIR}/src/include/Configure.h")
 # add include header file directory
-include_directories (src/include external_modules/rapidjson/include)
+include_directories (src/include)
 # call the subdirectory's cmakefile to build
 add_subdirectory (src)
 add_subdirectory (test)

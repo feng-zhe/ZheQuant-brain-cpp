@@ -1,4 +1,5 @@
 #include <ev.h>
+#include <cstdint>
 #include <iostream>
 #include <vector>
 #include <string>
@@ -6,9 +7,10 @@
 #include <chrono>
 #include <amqpcpp.h>
 #include <amqpcpp/libev.h>
-#include "rapidjson/document.h"
-#include "rapidjson/stringbuffer.h"
-#include "rapidjson/writer.h"
+#include <bsoncxx/json.hpp>
+#include <mongocxx/client.hpp>
+#include <mongocxx/stdx.hpp>
+#include <mongocxx/uri.hpp>
 #include "MyLibEvHandler.h"
 #include "CalculatorManager.h"
 #include "MovingAverageCalculator.h"
@@ -16,7 +18,12 @@
 #include "Helper.h"
 
 using namespace std;
-using namespace rapidjson;
+using bsoncxx::builder::stream::close_array;
+using bsoncxx::builder::stream::close_document;
+using bsoncxx::builder::stream::document;
+using bsoncxx::builder::stream::finalize;
+using bsoncxx::builder::stream::open_array;
+using bsoncxx::builder::stream::open_document;
 
 int main()
 {
@@ -74,65 +81,57 @@ int main()
                     string msg_str = string(message.body(), static_cast<size_t>(message.bodySize()));
                     cout << "[main] message received: " << msg_str << endl;
                     // read message into json object
-                    Document doc_msg, doc_result;
-                    doc_msg.Parse(msg_str.c_str());
-                    doc_result.SetObject();
+                    auto msg_view = bsoncxx::from_json(msg_str).view();
+                    auto rst_doc = document{};
                     // check message
-                    if( !doc_msg.HasMember("name") || !doc_msg["name"].IsString() ||
-                            !doc_msg.HasMember("creator") || !doc_msg["creator"].IsString() ||
-                            !doc_msg.HasMember("create_date") || !doc_msg["create_date"].IsString()
-                      ){ // bad request
-                    Value val_code(400);
-                    doc_result.AddMember("code", val_code, doc_result.GetAllocator());
-                    Value val_stat("error",5,doc_result.GetAllocator());
-                    doc_result.AddMember("status", val_stat, doc_result.GetAllocator());
-                    cout<< "bad request" << endl;
+                    if( !msg_view["name"] || msg_view["name"].type()!=bsoncxx::type::k_utf8 ||
+                        !msg_view["creator"] || !msg_view["creator"].type()!=bsoncxx::type::k_utf8 ||
+                        !msg_view["create_date"] || !msg_view["create_date"]type()!=bsoncxx::type::k_utf8 ) { // bad request
+                        Value val_code(400);
+                        doc_result.AddMember("code", val_code, doc_result.GetAllocator());
+                        Value val_stat("error",5,doc_result.GetAllocator());
+                        doc_result.AddMember("status", val_stat, doc_result.GetAllocator());
+                        cout<< "bad request" << endl;
                     } else {
-                    string str_name = doc_msg["name"].GetString();
-                    string str_creator = doc_msg["creator"].GetString();
-                    string str_create_date = doc_msg["create_date"].GetString();
-                    Value val_name(str_name.c_str(), static_cast<SizeType>(str_name.length()),doc_result.GetAllocator());
-                    doc_result.AddMember("name", val_name, doc_result.GetAllocator());
-                    Value val_creator(str_creator.c_str(), static_cast<SizeType>(str_creator.length()),doc_result.GetAllocator());
-                    doc_result.AddMember("creator", val_creator, doc_result.GetAllocator());
-                    Value val_create_date(str_create_date.c_str(), static_cast<SizeType>(str_create_date.length()),doc_result.GetAllocator());
-                    doc_result.AddMember("create_date", val_create_date, doc_result.GetAllocator());
-                    Value val_code(200);
-                    doc_result.AddMember("code", val_code, doc_result.GetAllocator());
-                    // if there is command, we parse it and calculate
-                    if(doc_msg.HasMember("cmd") && doc_msg["cmd"].IsString()){
-                        // calculate
-                        CalculatorManager calc_mgr;
-                        // split the cmd
-                        vector<string> cmd_strs = Helper::split_cmd(doc_msg["cmd"].GetString());
-                        // TODO: currently only support moving average
-                        MovingAverageCalculator mv_calc;
-                        calc_mgr.SetCalculator(mv_calc);
-                        cout<< "[main] set moving average calculator" << endl;
-                        // find the params
-                        string params;
-                        for(size_t i=0; i<cmd_strs.size()-1; ++i){
-                            if(cmd_strs[i]=="-p"){
-                                params = cmd_strs[i+1];
-                                break;
+                        string str_name = msg_view["name"].get_utf8().value.to_string();
+                        string str_creator = msg_view["creator"].get_utf8().value.to_string();
+                        string str_create_date = msg_view["create_date"].get_utf8().value.to_string();
+                        rst_doc    << "name" << str_name
+                                    << "creator" << str_creator
+                                    << "create_date" << str_create_date
+                                    << "code" << 200;
+                        // if there is command, we parse it and calculate
+                        if(msg_view["cmd"] && msg_view["cmd"].type()==bsoncxx::type::k_utf8){
+                            // calculate
+                            CalculatorManager calc_mgr;
+                            // split the cmd
+                            vector<string> cmd_strs = Helper::split_cmd(msg_view["cmd"].get_utf8().value.to_string());
+                            // TODO: currently only support moving average
+                            MovingAverageCalculator mv_calc;
+                            calc_mgr.SetCalculator(mv_calc);
+                            cout<< "[main] set moving average calculator" << endl;
+                            // find the params
+                            string params;
+                            for(size_t i=0; i<cmd_strs.size()-1; ++i){
+                                if(cmd_strs[i]=="-p"){
+                                    params = cmd_strs[i+1];
+                                    break;
+                                }
                             }
+                            cout<< "[main] start calculation" << endl;
+                            string str_result =  calc_mgr.Calculate(params);
+                            cout<< "[main] end calculation" << endl;
+                            rst_doc << "result" << str_result;
                         }
-                        cout<< "[main] start calculation" << endl;
-                        string str_result =  calc_mgr.Calculate(params);
-                        cout<< "[main] end calculation" << endl;
-                        Value val_result(str_result.c_str(), static_cast<SizeType>(str_result.length()), doc_result.GetAllocator());
-                        doc_result.AddMember("result", val_result, doc_result.GetAllocator());
+                        // set status to done
+                        rst_doc << "status" << "done";
                     }
-                    // set status to done
-                    Value val_stat("done",4,doc_result.GetAllocator());
-                    doc_result.AddMember("status", val_stat, doc_result.GetAllocator());
-                    }
+                    // get result string
+                    auto rst_val = rst_doc << finalize;
+                    auto rst_str = bsoncxx::to_json(rst_val.view());
                     // send the result
                     ch_send.startTransaction();
-                    StringBuffer buffer;
-                    Writer<StringBuffer> writer(buffer);
-                    doc_result.Accept(writer);
-                    ch_send.publish(EXCHG_DONE, ROUTING_KEY_DONE, buffer.GetString());
+                    ch_send.publish(EXCHG_DONE, ROUTING_KEY_DONE, rst_str);
                     ch_send.commitTransaction();
                     // acknowledge the message
                     ch_recv.ack(deliveryTag);
