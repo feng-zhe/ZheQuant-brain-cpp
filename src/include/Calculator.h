@@ -8,5 +8,9 @@ class Calculator {
     public:
         // calculate the result according to the simple string args
         virtual string Calculate(const string&) = 0;
+
+    protected:
+        // return the tag for debug
+        virtual string GetTag() = 0;
 };
 #endif

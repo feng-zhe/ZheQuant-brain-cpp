@@ -61,6 +61,10 @@ string MovingAverageCalculator::Calculate(const string& kCmd){
     return bsoncxx::to_json(doc);
 }
 
+string MovingAverageCalculator::GetTag(){
+    return "[moving average]";
+}
+
 CmdParams MovingAverageCalculator::ParseCmd(const string& kCmd){
     // the expected params shoud be like:
     // -d 20 -n 5
@@ -75,9 +79,9 @@ CmdParams MovingAverageCalculator::ParseCmd(const string& kCmd){
             num_stock = stoi(cmd_strs[++i]);
         }
     }
-    cout << "[moving average calculator] day length: "<< day_len << endl;
-    cout << "[moving average calculator] number of stocks: "<< num_stock << endl;
-    cout << "Parsing done" << endl;
+    cout << GetTag() << " day length: "<< day_len << endl;
+    cout << GetTag() << " number of stocks: "<< num_stock << endl;
+    cout << GetTag() << " Parsing done" << endl;
     return (CmdParams){day_len, num_stock};
 }
 

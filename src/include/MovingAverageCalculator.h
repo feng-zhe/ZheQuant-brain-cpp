@@ -22,6 +22,9 @@ class MovingAverageCalculator : public Calculator {
         virtual ~MovingAverageCalculator();
         string Calculate(const string&) override;
 
+    protected:
+        string GetTag() override;
+
     private:
         // parse the command string 
         CmdParams ParseCmd(const string& kCmd);
