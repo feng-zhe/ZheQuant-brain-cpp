@@ -12,8 +12,6 @@ else()
 endif()
 # generate configure header file
 configure_file ("${CMAKE_SOURCE_DIR}/Configure.txt.in" "${CMAKE_SOURCE_DIR}/src/include/Configure.h")
-# add include header file directory
-include_directories (src/include)
 # call the subdirectory's cmakefile to build
 add_subdirectory (src)
 add_subdirectory (test)
@@ -21,8 +19,13 @@ add_subdirectory (test)
 find_library (AMQP amqpcpp)
 find_library (PTHREAD pthread)
 find_library (EV ev)
+# find mongocxx and bsoncxx
+find_package (libbsoncxx)
+find_package (libmongocxx)
+# add include
+include_directories (src/include ${LIBMONGOCXX_INCLUDE_DIRS} ${LIBBSONCXX_INCLUDE_DIRS}) 
 # link libraries
-target_link_libraries (cbrain MyLib ${AMQP} ${PTHREAD} ${EV})
+target_link_libraries (cbrain MyLib ${AMQP} ${PTHREAD} ${EV} ${LIBMONGOCXX_LIBRARIES} ${LIBBSONCXX_LIBRARIES})
 # tests
 include (CTest) # use CTest module of cmake
 add_test (NAME Googletest COMMAND mv_avg_test)

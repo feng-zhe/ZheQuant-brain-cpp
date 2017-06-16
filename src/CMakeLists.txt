@@ -5,8 +5,6 @@ add_library (MyLib ${DIR_MYLIB_CPP})
 # for mongocxx
 find_package (libbsoncxx)
 find_package (libmongocxx)
-## for boost
-#find_library (LIB_BOOST_DATE_TIME boost_date_time)
 # add include
 target_include_directories (MyLib
     PRIVATE ${LIBMONGOCXX_INCLUDE_DIRS}

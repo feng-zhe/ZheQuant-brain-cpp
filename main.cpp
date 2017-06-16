@@ -84,13 +84,11 @@ int main()
                     auto msg_view = bsoncxx::from_json(msg_str).view();
                     auto rst_doc = document{};
                     // check message
-                    if( !msg_view["name"] || msg_view["name"].type()!=bsoncxx::type::k_utf8 ||
-                        !msg_view["creator"] || !msg_view["creator"].type()!=bsoncxx::type::k_utf8 ||
-                        !msg_view["create_date"] || !msg_view["create_date"]type()!=bsoncxx::type::k_utf8 ) { // bad request
-                        Value val_code(400);
-                        doc_result.AddMember("code", val_code, doc_result.GetAllocator());
-                        Value val_stat("error",5,doc_result.GetAllocator());
-                        doc_result.AddMember("status", val_stat, doc_result.GetAllocator());
+                    if( !msg_view["name"] || !(msg_view["name"].type()==bsoncxx::type::k_utf8) ||
+                        !msg_view["creator"] || !(msg_view["creator"].type()==bsoncxx::type::k_utf8) ||
+                        !msg_view["create_date"] || !(msg_view["create_date"].type()==bsoncxx::type::k_utf8) ) { // bad request
+                        rst_doc << "code" << 400
+                                << "status" << "error";
                         cout<< "bad request" << endl;
                     } else {
                         string str_name = msg_view["name"].get_utf8().value.to_string();
