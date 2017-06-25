@@ -14,7 +14,7 @@ bool MyLibEvHandler::isError(){
 void MyLibEvHandler::onError(AMQP::TcpConnection *connection, const char *message)
 {
     this->error_ = true;
-    cout<< "[ERROR] in handler: " << message <<endl;
+    cout << "[event handler]" << "[error] " << message <<endl;
 }
 
 void MyLibEvHandler::onConnected(AMQP::TcpConnection *connection)

@@ -88,7 +88,7 @@ int main()
                         !msg_view["create_date"] || !(msg_view["create_date"].type()==bsoncxx::type::k_utf8) ) { // bad request
                         rst_doc << "code" << 400
                                 << "status" << "error";
-                        cout<< "[main]" << " bad request" << endl;
+                        cout << "[main]" << " bad request" << endl;
                     } else {
                         string str_name = msg_view["name"].get_utf8().value.to_string();
                         string str_creator = msg_view["creator"].get_utf8().value.to_string();
@@ -130,7 +130,7 @@ int main()
         ev_run(loop, 0);
         // if error, try few seconds later
         if(handler.isError()){
-            cout<< "[main]" << " [info]" << "Trying few seconds later" << endl;
+            cout<< "[main]" << " [info]" << " Trying few seconds later" << endl;
             this_thread::sleep_for(chrono::milliseconds(5000));
         }
         else{

@@ -1,19 +1,13 @@
 /*
- * This class is used to calculate the moving average of the stock
+ * calculate the moving average of the stock
  */
 #ifndef _MOVINGAVERAGECALCULATOR_H
 #define _MOVINGAVERAGECALCULATOR_H
 #include <vector>
 #include <map>
 #include "Calculator.h"
-#include "structs.h"
 
 using namespace std;
-
-struct CmdParams {
-    int day_len;
-    int num_stock;
-};
 
 class MovingAverageCalculator : public Calculator {
 
@@ -27,8 +21,14 @@ class MovingAverageCalculator : public Calculator {
         string GetTag() override;
 
     private:
+        // private struct
+        struct CmdParams {
+            int day_len;
+            int num_stock;
+        };
+
         // parse the command string 
-        CmdParams ParseCmd(const string& kCmd);
+        CmdParams ParseParams(const string& kParams);
         // get the stock code lists
         vector<string> GetStockCodeList();
         // get price of one stock in recent days
