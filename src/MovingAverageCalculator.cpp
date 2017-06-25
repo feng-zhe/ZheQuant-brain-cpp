@@ -26,6 +26,10 @@ using bsoncxx::builder::stream::open_document;
 MovingAverageCalculator::MovingAverageCalculator(){}
 MovingAverageCalculator::~MovingAverageCalculator(){}
 
+string MovingAverageCalculator::GetCalcType(){
+    return "mv-avg";
+}
+
 string MovingAverageCalculator::Calculate(const string& kCmd){
     // parse the cmd params
     CmdParams cmd_params = ParseCmd(kCmd);
@@ -69,7 +73,8 @@ CmdParams MovingAverageCalculator::ParseCmd(const string& kCmd){
     // the expected params shoud be like:
     // -d 20 -n 5
     // parse the params
-    cout << "Parsing the parameters in command" << endl;
+    const string STR_DBG = GetTag();
+    cout << STR_DBG << " Parsing the parameters in command" << endl;
     vector<string> cmd_strs = Helper::split_cmd(kCmd);
     int day_len = 20, num_stock = 10; // defaults
     for(std::vector<string>::size_type i = 0; i != cmd_strs.size(); ++i){
@@ -79,37 +84,38 @@ CmdParams MovingAverageCalculator::ParseCmd(const string& kCmd){
             num_stock = stoi(cmd_strs[++i]);
         }
     }
-    cout << GetTag() << " day length: "<< day_len << endl;
-    cout << GetTag() << " number of stocks: "<< num_stock << endl;
-    cout << GetTag() << " Parsing done" << endl;
+    cout << STR_DBG << " day length: "<< day_len << endl;
+    cout << STR_DBG << " number of stocks: "<< num_stock << endl;
+    cout << STR_DBG << " Parsing done" << endl;
     return (CmdParams){day_len, num_stock};
 }
 
 vector<string> MovingAverageCalculator::GetStockCodeList(){
-    cout << "Retrieving stock code list" << endl;
+    const string STR_DBG = GetTag();
+    cout << STR_DBG << " Retrieving stock code list" << endl;
     vector<string> res;
     try{
         res = Storage::GetStockCodeList();
     } catch(mongocxx::query_exception &e){
-        cout << "[ERROR]: " << e.what() << endl;
+        cout << STR_DBG << " [ERROR]: " << e.what() << endl;
     } catch(...){
-        cout << "[ERROR] Unknown exception" << endl;
+        cout << STR_DBG << " [ERROR] Unknown exception" << endl;
     }
-    cout << "get stock list size: " << res.size() << endl;
+    cout << STR_DBG << " get stock list size: " << res.size() << endl;
     return res;
 }
 
 vector<double> MovingAverageCalculator::GetOneStockRecent(  const string& kCode,
                                                             const int kDay_len){
+    const string STR_DBG = GetTag();
     vector<double> res;
     try{
         res = Storage::GetOneStockRecent(kCode, kDay_len);
     } catch(mongocxx::query_exception &e){
-        cout << "[ERROR]: " << e.what() << endl;
+        cout << STR_DBG << " [ERROR]: " << e.what() << endl;
     } catch(...){
-        cout << "[ERROR] Unknown exception" << endl;
+        cout << STR_DBG << " [ERROR] Unknown exception" << endl;
     }
-    //cout << "Got " << res.size() << " Records for code: " << kCode << ", days: " << kDay_len << endl; // to much debug info
     return res;
 }
 

@@ -19,8 +19,9 @@ class MovingAverageCalculator : public Calculator {
 
     public:
         MovingAverageCalculator();
-        virtual ~MovingAverageCalculator();
+        ~MovingAverageCalculator();
         string Calculate(const string&) override;
+        string GetCalcType() override;
 
     protected:
         string GetTag() override;

@@ -13,9 +13,7 @@
 #include <mongocxx/uri.hpp>
 #include "MyLibEvHandler.h"
 #include "CalculatorManager.h"
-#include "MovingAverageCalculator.h"
 #include "Configure.h"
-#include "Helper.h"
 
 using namespace std;
 using bsoncxx::builder::stream::close_array;
@@ -27,6 +25,7 @@ using bsoncxx::builder::stream::open_document;
 
 int main()
 {
+    // const string part
     const string QUEUE_TODO = "jobs-todo";
     const string QUEUE_DONE= "jobs-done";
     const string EXCHG_DONE= "jobs-done";
@@ -46,40 +45,40 @@ int main()
         ch_recv.declareQueue(QUEUE_TODO, AMQP::durable)
             .onSuccess( [&QUEUE_TODO](const string &name, uint32_t msgcnt, uint32_t csmercnt) {
                     // report the name of the temporary queue
-                    cout << "declared queue " << name << endl;
+                    cout << "[main]" << " declared queue " << name << endl;
                     })
         .onError([&QUEUE_TODO](const string &msg) {
-                cout << "[ERROR] failed to declare queue" << QUEUE_TODO << ", message: " << msg <<endl;
+                cout << "[main]" << " [error] failed to declare queue" << QUEUE_TODO << ", message: " << msg <<endl;
                 });
 
         // declare job done exchange/queue
         ch_send.declareExchange(EXCHG_DONE, AMQP::fanout, AMQP::durable)
             .onSuccess( [&EXCHG_DONE]() {
-                    cout << "declared exchange " << EXCHG_DONE << endl;
+                    cout << "[main]" << " declared exchange " << EXCHG_DONE << endl;
                     })
         .onError([&EXCHG_DONE](const string &msg) {
-                cout << "[ERROR] failed to declare exchange " << EXCHG_DONE << endl;
+                cout << "[main]" << " [error] failed to declare exchange " << EXCHG_DONE << endl;
                 });
         ch_send.declareQueue(QUEUE_DONE, AMQP::durable)
             .onSuccess( [&QUEUE_DONE](const string &name, uint32_t msgcnt, uint32_t csmercnt) {
-                    cout << "declared queue " << name << endl;
+                    cout << "[main]" << " declared queue " << name << endl;
                     })
         .onError([&QUEUE_DONE](const string &msg) {
-                cout << "[ERROR] failed to declare queue" << QUEUE_DONE << ", message: " << msg <<endl;
+                cout << "[main]" << " [error] failed to declare queue" << QUEUE_DONE << ", message: " << msg <<endl;
                 });
         ch_send.bindQueue(EXCHG_DONE, QUEUE_DONE, ROUTING_KEY_DONE)
             .onSuccess( [&EXCHG_DONE, &QUEUE_DONE]() {
-                    cout << "binded exchange " << EXCHG_DONE << " with queue " << QUEUE_DONE << endl;
+                    cout << "[main]" << " binded exchange " << EXCHG_DONE << " with queue " << QUEUE_DONE << endl;
                     })
         .onError([&EXCHG_DONE, &QUEUE_DONE](const string &msg) {
-                cout << "[ERROR] failed to bind exchange " << EXCHG_DONE << " with queue " << QUEUE_DONE << endl;
+                cout << "[main]" << " [error] failed to bind exchange " << EXCHG_DONE << " with queue " << QUEUE_DONE << endl;
                 });
 
         // start consuming from the queue, and install the callbacks
         ch_recv.consume(QUEUE_TODO, AMQP::durable)
             .onReceived( [&ch_recv, &ch_send, &EXCHG_DONE, &ROUTING_KEY_DONE](const AMQP::Message& message, uint64_t deliveryTag, bool redelivered) {
                     string msg_str = string(message.body(), static_cast<size_t>(message.bodySize()));
-                    cout << "[main] message received: " << msg_str << endl;
+                    cout << "[main]" << "  message received: " << msg_str << endl;
                     // read message into json object
                     auto msg_view = bsoncxx::from_json(msg_str).view();
                     auto rst_doc = document{};
@@ -89,7 +88,7 @@ int main()
                         !msg_view["create_date"] || !(msg_view["create_date"].type()==bsoncxx::type::k_utf8) ) { // bad request
                         rst_doc << "code" << 400
                                 << "status" << "error";
-                        cout<< "bad request" << endl;
+                        cout<< "[main]" << " bad request" << endl;
                     } else {
                         string str_name = msg_view["name"].get_utf8().value.to_string();
                         string str_creator = msg_view["creator"].get_utf8().value.to_string();
@@ -100,25 +99,10 @@ int main()
                                     << "code" << 200;
                         // if there is command, we parse it and calculate
                         if(msg_view["cmd"] && msg_view["cmd"].type()==bsoncxx::type::k_utf8){
-                            // calculate
+                            // the calculator manager will find the right calculator
                             CalculatorManager calc_mgr;
-                            // split the cmd
-                            vector<string> cmd_strs = Helper::split_cmd(msg_view["cmd"].get_utf8().value.to_string());
-                            // TODO: currently only support moving average
-                            MovingAverageCalculator mv_calc;
-                            calc_mgr.SetCalculator(mv_calc);
-                            cout<< "[main] set moving average calculator" << endl;
-                            // find the params
-                            string params;
-                            for(size_t i=0; i<cmd_strs.size()-1; ++i){
-                                if(cmd_strs[i]=="-p"){
-                                    params = cmd_strs[i+1];
-                                    break;
-                                }
-                            }
-                            cout<< "[main] start calculation" << endl;
-                            string str_result =  calc_mgr.Calculate(params);
-                            cout<< "[main] end calculation" << endl;
+                            string str_cmd = msg_view["cmd"].get_utf8().value.to_string();
+                            string str_result =  calc_mgr.Calculate(str_cmd);
                             rst_doc << "result" << str_result;
                         }
                         // set status to done
@@ -135,18 +119,18 @@ int main()
                     ch_recv.ack(deliveryTag);
             })
         .onSuccess( [&QUEUE_TODO](const string& consumertag) {
-                cout << "consume operation started to listen queue: " 
+                cout << "[main]" << " consume operation started to listen queue: " 
                 << QUEUE_TODO << endl;
                 })
         .onError( [](const char *message) {
-                cout << "consume operation failed" << endl;
+                cout << "[main]" << " consume operation failed" << endl;
                 });
 
         // run the loop
         ev_run(loop, 0);
         // if error, try few seconds later
         if(handler.isError()){
-            cout<< "[INFO]" << "Trying few seconds later" << endl;
+            cout<< "[main]" << " [info]" << "Trying few seconds later" << endl;
             this_thread::sleep_for(chrono::milliseconds(5000));
         }
         else{

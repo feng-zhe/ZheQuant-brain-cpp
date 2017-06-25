@@ -4,20 +4,20 @@
 #ifndef _CALCULATORMANAGER_H
 #define _CALCULATORMANAGER_H
 #include <string>
+#include <vector>
 #include "Calculator.h"
 
 using namespace std;
 
 class CalculatorManager {
 
-    private:
-        Calculator *ptr_calc_ = NULL;
-
     public:
         CalculatorManager();
         virtual ~CalculatorManager();
-        CalculatorManager(Calculator&);
-        void SetCalculator(Calculator&);
         string Calculate(const string&);
+
+    private:
+        vector<Calculator*> GetAllCalcOnHeap();
+        void DeleteAllCalcOnHeap(const vector<Calculator*> &);
 };
 #endif
