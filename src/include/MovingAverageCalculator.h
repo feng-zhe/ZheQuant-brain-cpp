@@ -28,7 +28,7 @@ class MovingAverageCalculator : public Calculator {
         };
 
         // parse the command string 
-        CmdParams ParseParams(const string& kParams);
+        auto ParseParams(const string& kParams) -> CmdParams;
         // get the stock code lists
         vector<string> GetStockCodeList();
         // get price of one stock in recent days

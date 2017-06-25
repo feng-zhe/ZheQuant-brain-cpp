@@ -17,7 +17,7 @@ string CompareCalculator::GetTag(){
     return "[compare calculator]";
 }
 
-CompareCalculator::CmdParams CompareCalculator::ParseParams(const string& kParams){
+auto CompareCalculator::ParseParams(const string& kParams) -> CmdParams {
     CmdParams rst;
     // TODO
     return rst;

@@ -71,7 +71,7 @@ string MovingAverageCalculator::GetTag(){
     return "[moving average]";
 }
 
-MovingAverageCalculator::CmdParams MovingAverageCalculator::ParseParams(const string& kCmd){
+auto MovingAverageCalculator::ParseParams(const string& kCmd) -> CmdParams {
     // the expected params shoud be like:
     // -d 20 -n 5
     // parse the params

@@ -32,7 +32,7 @@ class CompareCalculator : public Calculator {
         };
 
         // parse the parameters
-        CmdParams ParseParams(const string& kParams);
+        auto ParseParams(const string& kParams) -> CmdParams;
         // get price of one stock
         vector<double> GetOneStockData(const string& kCode, const chrono::system_clock::time_point kBegin_tp, const chrono::system_clock::time_point kEnd_tp);
 };
