@@ -10,6 +10,7 @@ vector<string> Helper::split_cmd(const string& cmd){
     while(spos<cmd.size()){
         spos=cmd.find_first_not_of(" \t",spos); // skip spaces
         if(spos==string::npos) break; // nothing left
+        // TODO: add case for json string include space
         if(cmd[spos]=='"'){
             epos = cmd.find('"',++spos);
         } else {
