@@ -1,3 +1,6 @@
+# NOTICE
+This project is suspended and replaced by ZheQuant-brain-python
+
 # Usage
 The ZheQuant worker for time-comsuming calculation work and written by C++
 
